@@ -49,15 +49,80 @@ INIT_SYSTEM:
 	MOV 044H, #'A'
 	MOV 045H, #0 ; Koniec danych
 
-; Włączenie wyświetlacza
+; Włączenie wyświetlacza, włączenie kursora, włączenie migania
 LCD_SET_ON:
-	
+	CLR LCD_RS
+	CLR LCD_RW
+
+	; 1 CZĘŚĆ DANYCH
+		CLR LCD_D7
+		CLR LCD_D6
+		CLR LCD_D5
+		CLR LCD_D4
+
+	; ZATWIERDZENIE DANYCH
+		SETB LCD_E
+		CLR LCD_E
+
+	; 2 CZĘŚĆ DANYCH
+		SETB LCD_D7
+		SETB LCD_D6
+		SETB LCD_D5
+		SETB LCD_D4
+
+	; ZATWIEDZENIE DANYCH
+		SETB LCD_E
+		CLR LCD_E
+	RET	
 
 ; Wyłączenie wyświetlacza
 LCD_SET_OFF:
+	; 1 CZĘŚĆ DANYCH + RS NA 0, RW NA 0
+		CLR LCD_PORT
 
+	; ZATWIERDZENIE DANYCH
+		SETB LCD_E
+		CLR LCD_E
+
+	; 2 CZĘŚĆ DANYCH
+		CLR LCD_PORT
+
+	; ZATWIEDZENIE DANYCH
+		SETB LCD_E
+		CLR LCD_E
+	RET
 
 ; Zmiana trybu pracy na 4-bitowy
 LCD_FOUR_BITS:
+	; TRYB
+		CLR LED_RS
+		CLR LED_RW
 
+	; 1 CZĘŚĆ DANYCH
+		CLR LED_D7
+		CLR LED_D6
+		SETB LED_D5
+		CLR LED_D4
 
+	; POTWIERDZENIE WPISU
+		SETB LED_E
+		CLR LED_E
+
+	; 2 CZĘŚĆ DANYCH
+		SETB LED_D7 ; N = 1 -> 2 LINIE
+		SETB LED_D6 ; F = 1 -> 5 x 10 FORMAT ZNAKÓW
+
+	; POTWIERDZENIE
+		SETB LED_E
+		CLR LED_E
+	RET
+
+DELAY:
+	MOV R7, #0FFH
+	DEL2:	
+	MOV R6, #01BH
+	DJNZ R6, $
+	DJNZ R7, DEL2
+	RET
+
+END
